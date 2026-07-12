@@ -1,21 +1,41 @@
+SkillSwap
 1. Business Requirements Document (BRD)
 Project Name
-SkillSwap
+
+SkillSwap – Peer-to-Peer Skill Exchange Platform
+
 Objective
-Provide a web-based platform where users can share their skills, discover skills offered by others, and connect with people for peer-to-peer learning.
+
+Provide a web-based platform where users can share their skills, discover skills offered by others, and connect with people for peer-to-peer learning in a secure and user-friendly environment.
+
 Functional Requirements
 User Authentication
-Users must be able to register and log in securely.
-Users can edit their profile after login.
-User Profile
-Users must be able to add:
-Name
-Profile picture
-Bio
-Skills they can teach
-Skills they want to learn
+Users must be able to register with their email and password.
+Users must be able to log in securely.
+Passwords must be encrypted.
+Users can log out securely.
+User Profile Management
+
+Users must be able to:
+
+Add their Name
+Upload a Profile Picture
+Write a Bio
+Add Skills They Can Teach
+Add Skills They Want to Learn
+Edit profile information anytime.
+Skill Management
+
+Users must be able to:
+
+Add new skills.
+Edit skills.
+Delete skills.
+View all available skills.
 Skill Categories
+
 Users can browse skills under categories such as:
+
 Programming
 Music
 Languages
@@ -24,184 +44,50 @@ Sports
 Cooking
 Photography
 Search & Filter
-Users can search for skills.
-Users can filter skills by category.
+
+Users must be able to:
+
+Search skills by keyword.
+Filter skills by category.
+View matching search results.
 Skill Exchange Requests
-Users can send learning requests.
-Users can accept or reject requests.
+
+Users must be able to:
+
+Send exchange requests.
+Accept requests.
+Reject requests.
+View request status.
 Messaging
-Users can communicate through private messages after a request is accepted.
+
+Users can communicate through private chat only after a request has been accepted.
+
 Notifications
+
 Users receive notifications for:
-New requests
+
+New exchange requests
 Accepted requests
 New messages
 Non-Functional Requirements
 Security
-Passwords must be encrypted using Bcrypt.
-JWT authentication for secure sessions.
+Passwords must be hashed using Bcrypt.
+Authentication must use JWT.
+Protected API routes.
 Performance
 Search results should load within 2 seconds.
+API response time should be minimal.
 Scalability
-System should support thousands of users.
+
+The application should support thousands of concurrent users.
+
 Responsiveness
-Compatible with desktop, tablet, and mobile devices.
+
+The application must work properly on
+
+Desktop
+Tablet
+Mobile
 Availability
+
 System availability should be 99%.
-2. Technical Design Document (TDD)
-A. Tech Stack
-Frontend
-React (Vite)
-Tailwind CSS
-Backend
-Node.js
-Express.js
-Database
-PostgreSQL
-Prisma ORM
-Authentication
-JWT
-Bcrypt
-B. API Design
-Method
-Endpoint
-Description
-POST
-/api/auth/register
-Register new user
-POST
-/api/auth/login
-Login user
-GET
-/api/profile
-Get user profile
-PUT
-/api/profile
-Update profile
-GET
-/api/skills
-View all skills
-POST
-/api/skills
-Add a skill
-GET
-/api/skills/category/:category
-View skills by category
-POST
-/api/request
-Send skill exchange request
-PUT
-/api/request/:id
-Accept/Reject request
-GET
-/api/messages
-Get messages
-POST
-/api/messages
-Send message
-C. Database Schema
-User
-id
-name
-email
-password
-bio
-profileImage
-Skill
-id
-title
-category
-description
-userId
-SkillRequest
-id
-senderId
-receiverId
-skillId
-status
-Message
-id
-senderId
-receiverId
-message
-timestamp
-D. Implementation Strategy
-Phase 1 (Database)
-Design PostgreSQL database.
-Create Prisma models.
-Apply migrations.
-Phase 2 (Backend)
-Build authentication APIs.
-Develop profile, skills, request, and messaging APIs.
-Phase 3 (Frontend)
-Login/Register pages.
-Profile page.
-Skill listing page.
-Search page.
-Messaging page.
-Notifications.
-Phase 4 (Deployment)
-Frontend: Vercel
-Backend: Render/Railway
-Database: PostgreSQL
-Sprint 1: Infrastructure & Authentication
-Goal
-Prepare the development environment and implement authentication.
-Story 1: Database Setup
-As a Developer, I want to create database tables so user and skill data can be stored.
-Acceptance Criteria
-Prisma schema created.
-PostgreSQL connected.
-Migration successful.
-Story 2: User Registration
-As a User, I want to register so I can use the platform.
-Acceptance Criteria
-Password encrypted.
-User saved in database.
-Returns HTTP 201.
-Story 3: User Login
-As a User, I want to log in securely.
-Acceptance Criteria
-JWT generated.
-Invalid login returns HTTP 401.
-Sprint 2: Core Features
-Goal
-Enable users to share and discover skills.
-Story 4: Create Skill
-As a User, I want to add a skill that I can teach.
-Acceptance Criteria
-Skill saved successfully.
-Category selected.
-Linked with logged-in user.
-Story 5: Search Skills
-As a User, I want to search available skills.
-Acceptance Criteria
-Search works by skill name.
-Filter works by category.
-Story 6: Send Exchange Request
-As a User, I want to send a learning request.
-Acceptance Criteria
-Request stored.
-Receiver notified.
-Duplicate requests prevented.
-Sprint 3: Messaging & Quality
-Goal
-Complete communication features and improve application quality.
-Story 7: Messaging
-As a User, I want to chat after a request is accepted.
-Acceptance Criteria
-Messages stored.
-Chat updates correctly.
-Only accepted users can chat.
-Story 8: Notifications
-As a User, I want notifications for requests and messages.
-Acceptance Criteria
-Notification appears instantly.
-Notification marked as read.
-Story 9: Testing & Bug Fixes
-As a Team, we want to verify that the platform works correctly.
-Acceptance Criteria
-APIs tested.
-No console errors.
-Documentation completed.
-Responsive UI verified.

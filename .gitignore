@@ -1,0 +1,16 @@
+node_modules
+**/.env
+**/.env.*
+!.env.example
+!.env.example
+.env.local
+.env.*.local
+npm-debug.log*
+.DS_Store
+coverage
+/.idea
+/.vscode
+client/dist
+server/dist
+*.tsbuildinfo
+prisma/generated

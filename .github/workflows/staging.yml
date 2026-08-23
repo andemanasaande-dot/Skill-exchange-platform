@@ -1,0 +1,91 @@
+name: Staging Deployment
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository }}
+
+jobs:
+  publish:
+    name: Publish staging images
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate staging configuration
+        env:
+          PUBLIC_API_URL: ${{ secrets.STAGING_PUBLIC_API_URL }}
+          DEPLOY_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STAGING_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }}
+          DEPLOY_SSH_KEY: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+          REGISTRY_USER: ${{ secrets.STAGING_REGISTRY_USER }}
+          REGISTRY_TOKEN: ${{ secrets.STAGING_REGISTRY_TOKEN }}
+        run: |
+          test -n "$PUBLIC_API_URL"
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_PATH"
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$REGISTRY_USER"
+          test -n "$REGISTRY_TOKEN"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: server/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE_PREFIX }}/backend:staging-${{ github.sha }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        env:
+          PUBLIC_API_URL: ${{ secrets.STAGING_PUBLIC_API_URL }}
+        with:
+          context: .
+          file: client/Dockerfile
+          build-args: VITE_API_URL=${{ env.PUBLIC_API_URL }}/api/v1
+          push: true
+          tags: ${{ env.IMAGE_PREFIX }}/frontend:staging-${{ github.sha }}
+
+  deploy:
+    name: Deploy staging
+    runs-on: ubuntu-latest
+    needs: publish
+    environment: staging
+    steps:
+      - name: Load staging SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+
+      - name: Update staging services
+        env:
+          DEPLOY_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STAGING_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }}
+          REGISTRY_USER: ${{ secrets.STAGING_REGISTRY_USER }}
+          REGISTRY_TOKEN: ${{ secrets.STAGING_REGISTRY_TOKEN }}
+          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
+          IMAGE_TAG: staging-${{ github.sha }}
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "$DEPLOY_USER@$DEPLOY_HOST" \
+            "echo \"$REGISTRY_TOKEN\" | docker login ghcr.io -u \"$REGISTRY_USER\" --password-stdin && cd \"$DEPLOY_PATH\" && export SKILLSWAP_IMAGE_PREFIX=\"$IMAGE_PREFIX\" SKILLSWAP_IMAGE_TAG=\"$IMAGE_TAG\" && docker compose -f docker-compose.staging.yml pull && docker compose -f docker-compose.staging.yml up -d --no-build"

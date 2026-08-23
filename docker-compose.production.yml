@@ -1,0 +1,46 @@
+services:
+  backend:
+    image: ${SKILLSWAP_IMAGE_PREFIX:?Set SKILLSWAP_IMAGE_PREFIX}/backend:${SKILLSWAP_IMAGE_TAG:?Set SKILLSWAP_IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: ${DATABASE_URL:?Set production DATABASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL:?Set production FRONTEND_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set production JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set production JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:?Set production COOKIE_DOMAIN}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:?Set production EMAIL_PROVIDER}
+      EMAIL_FROM: ${EMAIL_FROM:?Set production EMAIL_FROM}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:?Set production STORAGE_PROVIDER}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:?Set production STORAGE_BUCKET}
+      STORAGE_REGION: ${STORAGE_REGION:?Set production STORAGE_REGION}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:?Set production STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:?Set production STORAGE_SECRET_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "5000:5000"
+    command: ["sh", "-c", "npx prisma migrate deploy --schema server/prisma/schema.prisma && node server/dist/server.js"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:5000/api/v1/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 10
+
+  frontend:
+    image: ${SKILLSWAP_IMAGE_PREFIX:?Set SKILLSWAP_IMAGE_PREFIX}/frontend:${SKILLSWAP_IMAGE_TAG:?Set SKILLSWAP_IMAGE_TAG}
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 5

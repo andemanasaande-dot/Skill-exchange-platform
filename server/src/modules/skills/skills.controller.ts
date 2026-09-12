@@ -5,6 +5,24 @@ import { createSkillSchema, skillIdSchema, updateSkillSchema } from './skills.va
 import { skillDiscoveryQuerySchema } from './skills.discovery.validation';
 
 export const skillsController = {
+  saved: async (req: Request, res: Response) => res.status(200).json({ success: true, data: await skillsService.listSavedSkills(req.user?.id ?? '') }),
+  save: async (req: Request, res: Response) => {
+    try { return res.status(201).json({ success: true, data: await skillsService.saveSkill(req.user?.id ?? '', skillIdSchema.parse(req.params).id) }); }
+    catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid skill ID.' } });
+      if (error instanceof Error && error.message === 'SKILL_ALREADY_SAVED') return res.status(409).json({ success: false, error: { code: error.message, message: 'This skill is already saved.' } });
+      if (error instanceof Error && error.message === 'SKILL_NOT_FOUND') return res.status(404).json({ success: false, error: { code: error.message, message: 'The skill could not be found.' } });
+      return res.status(500).json({ success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: 'Unable to save skill.' } });
+    }
+  },
+  unsave: async (req: Request, res: Response) => { await skillsService.unsaveSkill(req.user?.id ?? '', skillIdSchema.parse(req.params).id); return res.status(204).send(); },
+  categories: async (_req: Request, res: Response) => {
+    try {
+      return res.status(200).json({ success: true, data: await skillsService.listCategories() });
+    } catch {
+      return res.status(500).json({ success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: 'Unable to retrieve skill categories.' } });
+    }
+  },
   list: async (req: Request, res: Response) => {
     try {
       const query = skillDiscoveryQuerySchema.parse(req.query);

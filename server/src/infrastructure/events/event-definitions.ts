@@ -14,6 +14,13 @@ export type DomainEventMap = {
   'request.rejected': RequestEventPayload & { status: 'REJECTED'; actorUserId: string; previousStatus: 'PENDING' };
   'request.cancelled': RequestEventPayload & { status: 'CANCELLED'; actorUserId: string; previousStatus: 'PENDING' };
   'request.completed': RequestEventPayload & { status: 'COMPLETED'; actorUserId: string; previousStatus: 'ACCEPTED' };
+  'review.created': {
+    reviewId: string;
+    requestId: string;
+    authorId: string;
+    recipientId: string;
+    rating: number;
+  };
   'message.sent': {
     messageId: string;
     conversationId: string;

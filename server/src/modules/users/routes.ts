@@ -14,7 +14,11 @@ export const createUsersRouter = () => {
   router.get('/profile/interests', interestsController.list);
   router.post('/profile/interests', validateBody(createInterestSchema), interestsController.add);
   router.delete('/profile/interests/:skillId', validateParams(interestSkillIdSchema), interestsController.remove);
+  router.get('/users/:id/block-status', validateParams(userIdSchema), usersController.blockStatus);
+  router.post('/users/:id/block', validateParams(userIdSchema), usersController.blockUser);
+  router.delete('/users/:id/block', validateParams(userIdSchema), usersController.unblockUser);
   router.get('/users/:id', validateParams(userIdSchema), usersController.getUserById);
+  router.get('/users/:id/interests', validateParams(userIdSchema), interestsController.listPublic);
   router.put('/users/:id', validateParams(userIdSchema), validateBody(updateProfileSchema), usersController.updateUserById);
 
   return router;

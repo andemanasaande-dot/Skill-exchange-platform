@@ -39,6 +39,16 @@ export const interestsController = {
     }
   },
 
+  listPublic: async (req: Request, res: Response) => {
+    try {
+      const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const interests = await interestsService.listPublic(userId);
+      return res.status(200).json({ success: true, data: interests });
+    } catch (error: unknown) {
+      return sendError(res, error, 'retrieve');
+    }
+  },
+
   add: async (req: Request, res: Response) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication is required.' } });

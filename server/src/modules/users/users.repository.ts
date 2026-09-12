@@ -1,6 +1,20 @@
 import prisma from '../../infrastructure/database/prisma';
 
 export const usersRepository = {
+  block: (blockerId: string, blockedId: string) => prisma.userBlock.create({
+    data: { blockerId, blockedId },
+    select: { id: true, blockerId: true, blockedId: true, createdAt: true },
+  }),
+
+  unblock: (blockerId: string, blockedId: string) => prisma.userBlock.deleteMany({ where: { blockerId, blockedId } }),
+
+  isBlocked: (blockerId: string, blockedId: string) => prisma.userBlock.findUnique({
+    where: { blockerId_blockedId: { blockerId, blockedId } },
+    select: { id: true },
+  }),
+
+  findExists: (id: string) => prisma.user.findUnique({ where: { id }, select: { id: true } }),
+
   findById: async (id: string) => {
     return prisma.user.findUnique({
       where: { id },
@@ -16,6 +30,11 @@ export const usersRepository = {
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        receivedReviews: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { id: true, rating: true, comment: true, createdAt: true, author: { select: { id: true, name: true } } },
+        },
       },
     });
   },
@@ -31,6 +50,11 @@ export const usersRepository = {
         avatarUrl: true,
         createdAt: true,
         updatedAt: true,
+        receivedReviews: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { id: true, rating: true, comment: true, createdAt: true, author: { select: { id: true, name: true } } },
+        },
       },
     });
   },
@@ -56,6 +80,11 @@ export const usersRepository = {
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        receivedReviews: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { id: true, rating: true, comment: true, createdAt: true, author: { select: { id: true, name: true } } },
+        },
       },
     });
   },

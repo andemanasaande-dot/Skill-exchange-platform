@@ -4,6 +4,37 @@ import { usersService } from './users.service';
 import { updateProfileSchema } from './users.validation';
 
 export const usersController = {
+  blockUser: async (req: Request, res: Response) => {
+    const blockerId = req.user?.id;
+    if (!blockerId) return res.status(401).json({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication is required.' } });
+    try {
+      await usersService.blockUser(blockerId, req.params.id as string);
+      return res.status(201).json({ success: true, message: 'User blocked.' });
+    } catch (error: unknown) {
+      const code = error instanceof Error ? error.message : '';
+      const known: Record<string, [number, string]> = {
+        SELF_BLOCK: [400, 'You cannot block yourself.'],
+        USER_NOT_FOUND: [404, 'The requested user could not be found.'],
+        BLOCK_ALREADY_EXISTS: [409, 'You have already blocked this user.'],
+      };
+      const [status, message] = known[code] ?? [500, 'Unable to block this user.'];
+      return res.status(status).json({ success: false, error: { code: known[code] ? code : 'INTERNAL_SERVER_ERROR', message } });
+    }
+  },
+
+  unblockUser: async (req: Request, res: Response) => {
+    const blockerId = req.user?.id;
+    if (!blockerId) return res.status(401).json({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication is required.' } });
+    await usersService.unblockUser(blockerId, req.params.id as string);
+    return res.status(204).send();
+  },
+
+  blockStatus: async (req: Request, res: Response) => {
+    const blockerId = req.user?.id;
+    if (!blockerId) return res.status(401).json({ success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication is required.' } });
+    return res.status(200).json({ success: true, data: { blocked: await usersService.isUserBlocked(blockerId, req.params.id as string) } });
+  },
+
   getProfile: async (req: Request, res: Response) => {
     try {
       const userId = req.user?.id;

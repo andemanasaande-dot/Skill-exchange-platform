@@ -131,7 +131,31 @@ export const registerUser = async ({
     passwordHash,
   });
 
-  void emailVerificationToken;
+  const verificationTokenHash = await hashRefreshToken(emailVerificationToken);
+  const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  await authRepository.createVerificationToken({
+    userId: createdUser.id,
+    tokenHash: verificationTokenHash,
+    expiresAt: verificationExpiresAt,
+  });
+
+  await defaultEmailService.sendVerificationEmail({
+    to: createdUser.email,
+    name: createdUser.name,
+    token: emailVerificationToken,
+  });
+
+  await authRepository.createAuditLog({
+    actorUserId: createdUser.id,
+    action: 'EMAIL_VERIFICATION_SENT',
+    entityType: 'EMAIL_VERIFICATION',
+    entityId: createdUser.id,
+    details: {
+      email: createdUser.email,
+      expiresAt: verificationExpiresAt.toISOString(),
+    },
+  });
 
   return {
     id: createdUser.id,

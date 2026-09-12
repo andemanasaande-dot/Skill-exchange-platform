@@ -50,11 +50,8 @@ export const requestsRepository = {
     const request = await tx.skillExchangeRequest.findUniqueOrThrow({ where: { id }, select: requestSelect });
     if (to === 'ACCEPTED') {
       const [userAId, userBId] = [request.senderId, request.receiverId].sort();
-      await tx.conversation.upsert({
-        where: { requestId: id },
-        create: { requestId: id, userAId, userBId },
-        update: {},
-      });
+      const existingConversation = await tx.conversation.findUnique({ where: { userAId_userBId: { userAId, userBId } }, select: { id: true } });
+      if (!existingConversation) await tx.conversation.create({ data: { requestId: id, userAId, userBId } });
     }
     await auditService.recordWithClient(tx, { actorUserId, action: `REQUEST_${to}`, entityType: 'SkillExchangeRequest', entityId: id, payload: { from, to } });
     return request;

@@ -64,4 +64,15 @@ describe('skills CRUD and ownership', () => {
     expect(list).toHaveBeenCalledWith(expect.objectContaining({ search: 'java', page: 2, limit: 1, sort: 'title_asc' }));
     expect(response.body.pagination.totalPages).toBe(3);
   });
+
+  it('persists saved skills for a visible active skill', async () => {
+    vi.spyOn(skillsRepository, 'getById').mockResolvedValue(skill({ userId: 'user_bob' }) as never);
+    vi.spyOn(skillsRepository, 'save').mockResolvedValue({ id: 'saved_1', createdAt: new Date(), skill: { ...skill({ userId: 'user_bob' }), owner: { id: 'user_bob', name: 'Bob' }, category: { id: 'category_programming', name: 'Programming', slug: 'programming' } } } as never);
+    vi.spyOn(skillsRepository, 'listSaved').mockResolvedValue([{ id: 'saved_1' }] as never);
+    const saved = await request(createApp()).post('/api/v1/skills/skill_java/save');
+    const listed = await request(createApp()).get('/api/v1/skills/saved');
+    expect(saved.status).toBe(201);
+    expect(listed.status).toBe(200);
+
+  });
 });

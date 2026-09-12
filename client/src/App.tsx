@@ -10,6 +10,7 @@ const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
 const RequestsPage = lazy(() => import('./pages/RequestsPage'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const SavedSkillsPage = lazy(() => import('./pages/SavedSkillsPage'));
 const lazyNamed = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) => lazy(() => loader().then((module) => ({ default: module[name] as ComponentType })));
 const AuthPages = {
   ForgotPasswordPage: lazyNamed(() => import('./pages/AuthPages'), 'ForgotPasswordPage'),
@@ -24,6 +25,7 @@ const ProfilePages = {
   PublicProfilePage: lazyNamed(() => import('./pages/ProfilePages'), 'PublicProfilePage'),
 };
 const AdminPages = {
+  AuditLogsPage: lazyNamed(() => import('./pages/AdminPages'), 'AuditLogsPage'),
   AdminCategoriesPage: lazyNamed(() => import('./pages/AdminPages'), 'AdminCategoriesPage'),
   AdminDashboardPage: lazyNamed(() => import('./pages/AdminPages'), 'AdminDashboardPage'),
   AdminSkillsPage: lazyNamed(() => import('./pages/AdminPages'), 'AdminSkillsPage'),
@@ -40,11 +42,12 @@ function App() {
       <Route path="/forgot-password" element={<AuthPages.ForgotPasswordPage />} />
       <Route path="/reset-password" element={<AuthPages.ResetPasswordPage />} />
       <Route path="/verify-email" element={<AuthPages.VerifyEmailPage />} />
-      <Route path="/browse" element={<WorkspacePage />} />
+      <Route path="/browse" element={<Navigate to="/discover" replace />} />
       <Route element={<ProtectedRoute />}><Route element={<AppShell />}>
         {['/dashboard', '/skills', '/settings'].map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/messages" element={<MessagesPage />} />
+        <Route path="/saved-skills" element={<SavedSkillsPage />} />
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/requests" element={<RequestsPage />} />
         <Route path="/profile" element={<ProfilePages.ProfilePage />} />
@@ -53,9 +56,8 @@ function App() {
         <Route element={<RoleProtectedRoute roles={['ADMIN', 'MODERATOR']} />}>
           <Route element={<RoleProtectedRoute roles={['ADMIN']} />}><Route path="/admin" element={<AdminPages.AdminDashboardPage />} /></Route>
           <Route path="/admin/reports" element={<AdminPages.ReportsPage />} />
-          <Route path="/admin/users" element={<AdminPages.AdminUsersPage />} />
-          <Route path="/admin/skills" element={<AdminPages.AdminSkillsPage />} />
-          <Route path="/admin/categories" element={<AdminPages.AdminCategoriesPage />} />
+          <Route element={<RoleProtectedRoute roles={['ADMIN']} />}><Route path="/admin/users" element={<AdminPages.AdminUsersPage />} /><Route path="/admin/skills" element={<AdminPages.AdminSkillsPage />} /><Route path="/admin/categories" element={<AdminPages.AdminCategoriesPage />} /></Route>
+          <Route path="/admin/audit-logs" element={<AdminPages.AuditLogsPage />} />
         </Route>
       </Route></Route>
       <Route path="/home" element={<Navigate to="/dashboard" replace />} />

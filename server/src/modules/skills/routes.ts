@@ -6,6 +6,10 @@ import { skillDiscoveryQuerySchema } from './skills.discovery.validation';
 export const createSkillsRouter = () => {
   const router = Router();
 
+  router.get('/categories', skillsController.categories);
+  router.get('/saved', skillsController.saved);
+  router.post('/:id/save', skillsController.save);
+  router.delete('/:id/save', skillsController.unsave);
   router.get('/', validateQuery(skillDiscoveryQuerySchema), skillsController.list);
   router.post('/', skillsController.create);
   router.get('/:id', skillsController.get);

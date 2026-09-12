@@ -33,6 +33,6 @@ let subscribersRegistered = false;
 export const registerNotificationSubscribers = () => {
   if (subscribersRegistered) return;
   subscribersRegistered = true;
-  const eventTypes = ['request.created', 'request.accepted', 'request.rejected', 'message.sent', 'moderation.flagged'] as const;
+  const eventTypes = ['request.created', 'request.accepted', 'request.rejected', 'request.completed', 'message.sent', 'review.created', 'moderation.flagged'] as const;
   eventTypes.forEach((eventType) => eventBus.subscribe(eventType, (event) => notificationsService.handleEvent(event as NotificationEvent)));
 };

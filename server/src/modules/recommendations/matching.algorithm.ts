@@ -62,8 +62,9 @@ export const calculateMatch = (currentUser: MatchUser, candidate: MatchUser): Us
 
   const firstDirection = chooseBestMatch(currentToCandidate);
   const reciprocalDirection = chooseBestMatch(candidateToCurrent);
-  const categoryCompatible = firstDirection.teachingSkill.categoryId === reciprocalDirection.teachingSkill.categoryId;
-  const score = Math.min(100, 70 + (categoryCompatible ? 20 : 0) + 5 + 5);
+  const teachingCoverage = currentToCandidate.length / currentTeaches.length;
+  const learningCoverage = candidateToCurrent.length / currentWantsToLearn.length;
+  const score = Math.round(((teachingCoverage + learningCoverage) / 2) * 100);
   const currentTeaching = firstDirection.teachingSkill;
   const candidateLearning = firstDirection.learningInterest;
 

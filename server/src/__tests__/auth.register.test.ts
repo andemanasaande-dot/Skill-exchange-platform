@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { authRepository } from '../modules/auth/auth.repository';
 import { createAuthRouter } from '../modules/auth/routes';
+import { defaultEmailService } from '../infrastructure/email/email.service';
 
 describe('auth registration', () => {
   afterEach(() => {
@@ -28,6 +29,9 @@ describe('auth registration', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    const createVerificationToken = vi.spyOn(authRepository, 'createVerificationToken').mockResolvedValue({} as never);
+    const sendVerificationEmail = vi.spyOn(defaultEmailService, 'sendVerificationEmail').mockResolvedValue();
+    vi.spyOn(authRepository, 'createAuditLog').mockResolvedValue({} as never);
 
     const response = await request(app)
       .post('/api/v1/auth/register')
@@ -43,6 +47,8 @@ describe('auth registration', () => {
     expect(response.body.data.user.passwordHash).toBeUndefined();
     expect(response.body.data.user.emailVerified).toBe(false);
     expect(response.body.data.user.status).toBe('ACTIVE');
+    expect(createVerificationToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'user_123', tokenHash: expect.any(String), expiresAt: expect.any(Date) }));
+    expect(sendVerificationEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'alice@example.com', name: 'Alice Example', token: expect.any(String) }));
   });
 
   it('rejects duplicate email addresses', async () => {

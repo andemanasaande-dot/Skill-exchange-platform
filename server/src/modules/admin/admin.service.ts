@@ -21,4 +21,12 @@ export const adminService = {
     return user;
   }),
   listCategories: () => prisma.skillCategory.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, description: true, createdAt: true } }),
+  updateSkillStatus: async (id: string, isActive: boolean, actorUserId: string) => prisma.$transaction(async (tx) => {
+    const skill = await tx.skill.update({ where: { id }, data: { isActive }, select: { id: true, title: true, isActive: true, owner: { select: { name: true } }, category: { select: { name: true } } } });
+    await tx.auditLog.create({ data: { actorUserId, action: isActive ? 'ADMIN_SKILL_ACTIVATED' : 'ADMIN_SKILL_DEACTIVATED', entityType: 'Skill', entityId: id, payload: { isActive } } });
+    return skill;
+  }),
+  createCategory: (payload: { name: string; slug: string; description?: string }) => prisma.skillCategory.create({ data: payload, select: { id: true, name: true, slug: true, description: true, createdAt: true } }),
+  updateCategory: (id: string, payload: { name?: string; slug?: string; description?: string }) => prisma.skillCategory.update({ where: { id }, data: payload, select: { id: true, name: true, slug: true, description: true, createdAt: true } }),
+  deleteCategory: (id: string) => prisma.skillCategory.delete({ where: { id } }),
 };

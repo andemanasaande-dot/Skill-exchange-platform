@@ -149,5 +149,25 @@ export const createSocketServer = (httpServer: HttpServer) => {
     io.to(userRoomFor(event.payload.receiverId)).emit('conversation:created', payload);
   });
 
+  eventBus.subscribe('request.created', async (event) => {
+    io.to(userRoomFor(event.payload.receiverId)).emit('notification:new', { type: event.type });
+  });
+  eventBus.subscribe('request.accepted', async (event) => {
+    io.to(userRoomFor(event.payload.senderId)).emit('notification:new', { type: event.type });
+  });
+  eventBus.subscribe('request.rejected', async (event) => {
+    io.to(userRoomFor(event.payload.senderId)).emit('notification:new', { type: event.type });
+  });
+  eventBus.subscribe('request.completed', async (event) => {
+    const recipientId = event.payload.actorUserId === event.payload.senderId ? event.payload.receiverId : event.payload.senderId;
+    io.to(userRoomFor(recipientId)).emit('notification:new', { type: event.type });
+  });
+  eventBus.subscribe('review.created', async (event) => {
+    io.to(userRoomFor(event.payload.recipientId)).emit('notification:new', { type: event.type });
+  });
+  eventBus.subscribe('moderation.flagged', async (event) => {
+    io.to(userRoomFor(event.payload.reporterId)).emit('notification:new', { type: event.type });
+  });
+
   return io;
 };

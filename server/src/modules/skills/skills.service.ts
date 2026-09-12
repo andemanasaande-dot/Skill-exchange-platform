@@ -24,6 +24,7 @@ export const skillsService = {
     }
   },
   getSkill: (id: string) => skillsRepository.getById(id),
+  listCategories: () => skillsRepository.listCategories(),
   updateSkill: async (userId: string, id: string, payload: { title?: string; categoryId?: string; description?: string; isActive?: boolean }) => {
     const skill = await skillsRepository.getById(id);
     if (!skill) throw new Error('SKILL_NOT_FOUND');
@@ -36,4 +37,14 @@ export const skillsService = {
     if (skill.userId !== userId) throw new Error('FORBIDDEN');
     await skillsRepository.delete(id);
   },
+  listSavedSkills: (userId: string) => skillsRepository.listSaved(userId),
+  saveSkill: async (userId: string, skillId: string) => {
+    const skill = await skillsRepository.getById(skillId);
+    if (!skill || !skill.isActive) throw new Error('SKILL_NOT_FOUND');
+    try { return await skillsRepository.save(userId, skillId); } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') throw new Error('SKILL_ALREADY_SAVED');
+      throw error;
+    }
+  },
+  unsaveSkill: (userId: string, skillId: string) => skillsRepository.unsave(userId, skillId),
 };

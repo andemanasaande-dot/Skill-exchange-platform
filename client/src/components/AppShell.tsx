@@ -1,4 +1,4 @@
-import { Bell, Compass, FileText, Home, LogOut, Menu, MessageCircle, Search, Settings, Shield, UserRound, X } from 'lucide-react';
+import { Bell, Bookmark, Compass, FileText, Home, LogOut, Menu, MessageCircle, Search, Settings, Shield, UserRound, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
@@ -9,10 +9,11 @@ const navigation = [
   { to: '/dashboard', label: 'Dashboard', icon: Home }, { to: '/discover', label: 'Discover', icon: Compass },
   { to: '/skills', label: 'My skills', icon: Search }, { to: '/requests', label: 'Requests', icon: FileText },
   { to: '/messages', label: 'Messages', icon: MessageCircle }, { to: '/notifications', label: 'Notifications', icon: Bell },
+  { to: '/saved-skills', label: 'Saved skills', icon: Bookmark },
   { to: '/profile', label: 'Profile', icon: UserRound }, { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
-function NavItems({ onNavigate }: { onNavigate?: () => void }) { const role = useAuthStore((state) => state.user?.role); return <nav className="space-y-1">{navigation.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={onNavigate} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}><Icon size={18} />{label}</NavLink>)}{(role === 'ADMIN' || role === 'MODERATOR') && <NavLink to="/admin" onClick={onNavigate} className="nav-link"><Shield size={18} />Admin</NavLink>}</nav>; }
+function NavItems({ onNavigate }: { onNavigate?: () => void }) { const role = useAuthStore((state) => state.user?.role); const adminPath = role === 'ADMIN' ? '/admin' : '/admin/reports'; return <nav className="space-y-1">{navigation.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={onNavigate} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}><Icon size={18} />{label}</NavLink>)}{(role === 'ADMIN' || role === 'MODERATOR') && <NavLink to={adminPath} onClick={onNavigate} className="nav-link"><Shield size={18} />Admin</NavLink>}{role === 'ADMIN' && <NavLink to="/admin/audit-logs" onClick={onNavigate} className="nav-link"><FileText size={18} />Audit logs</NavLink>}</nav>; }
 
 export function Navbar({ onMenu }: { onMenu: () => void }) { const user = useAuthStore((state) => state.user); const clear = useAuthStore((state) => state.clearSession); const navigate = useNavigate(); return <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur md:px-8"><button className="icon-button md:hidden" onClick={onMenu} aria-label="Open navigation"><Menu size={20} /></button><NavLink to="/dashboard" className="font-display text-xl font-bold tracking-tight text-slate-900">Skill<span className="text-cyan-600">Swap</span></NavLink><div className="flex items-center gap-3"><NotificationBell /><div className="hidden text-right sm:block"><p className="text-sm font-semibold text-slate-800">{user?.name ?? 'Member'}</p><p className="text-xs text-slate-500">{user?.email ?? 'Connected account'}</p></div><button className="icon-button" aria-label="Sign out" onClick={() => { void api.auth.logout().catch(() => undefined); clear(); navigate('/login'); }}><LogOut size={18} /></button></div></header>; }
 export function Sidebar() { return <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white px-4 py-6 md:block"><p className="mb-5 px-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Workspace</p><NavItems /></aside>; }

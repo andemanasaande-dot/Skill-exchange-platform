@@ -57,7 +57,11 @@ export const skillsRepository = {
   getById: async (_id: string) => {
     return prisma.skill.findUnique({ where: { id: _id }, select: { id: true, userId: true, categoryId: true, title: true, description: true, isActive: true, createdAt: true, updatedAt: true } });
   },
+  listCategories: () => prisma.skillCategory.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, description: true } }),
   create: async (payload: { userId: string; title: string; categoryId: string; description?: string; isActive?: boolean }) => prisma.skill.create({ data: payload, select: { id: true, userId: true, categoryId: true, title: true, description: true, isActive: true, createdAt: true, updatedAt: true } }),
   update: async (id: string, payload: { title?: string; categoryId?: string; description?: string; isActive?: boolean }) => prisma.skill.update({ where: { id }, data: payload, select: { id: true, userId: true, categoryId: true, title: true, description: true, isActive: true, createdAt: true, updatedAt: true } }),
   delete: async (id: string) => prisma.skill.delete({ where: { id } }),
+  listSaved: (userId: string) => prisma.savedSkill.findMany({ where: { userId }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], select: { id: true, createdAt: true, skill: { select: { id: true, title: true, description: true, isActive: true, owner: { select: { id: true, name: true } }, category: { select: { id: true, name: true, slug: true } } } } } }),
+  save: (userId: string, skillId: string) => prisma.savedSkill.create({ data: { userId, skillId }, select: { id: true, createdAt: true, skill: { select: { id: true, title: true, description: true, isActive: true, owner: { select: { id: true, name: true } }, category: { select: { id: true, name: true, slug: true } } } } } }),
+  unsave: (userId: string, skillId: string) => prisma.savedSkill.deleteMany({ where: { userId, skillId } }),
 };

@@ -10,6 +10,7 @@ const sanitizePublicUser = (user: {
   avatarUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
+  receivedReviews: Array<{ id: string; rating: number; comment: string | null; createdAt: Date; author: { id: string; name: string } }>;
 }) => ({
   id: user.id,
   name: user.name,
@@ -18,9 +19,27 @@ const sanitizePublicUser = (user: {
   avatarUrl: user.avatarUrl,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
+  reviews: user.receivedReviews,
 });
 
 export const usersService = {
+  blockUser: async (blockerId: string, blockedId: string) => {
+    if (blockerId === blockedId) throw new Error('SELF_BLOCK');
+    if (!await usersRepository.findExists(blockedId)) throw new Error('USER_NOT_FOUND');
+    try {
+      return await usersRepository.block(blockerId, blockedId);
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') throw new Error('BLOCK_ALREADY_EXISTS');
+      throw error;
+    }
+  },
+
+  unblockUser: async (blockerId: string, blockedId: string) => {
+    await usersRepository.unblock(blockerId, blockedId);
+  },
+
+  isUserBlocked: async (blockerId: string, blockedId: string) => Boolean(await usersRepository.isBlocked(blockerId, blockedId)),
+
   getProfile: async (userId: string) => {
     const user = await usersRepository.findById(userId);
 
@@ -41,6 +60,7 @@ export const usersService = {
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        reviews: user.receivedReviews,
       },
     };
   },
@@ -95,6 +115,7 @@ export const usersService = {
         emailVerified: updatedUser.emailVerified,
         createdAt: updatedUser.createdAt,
         updatedAt: updatedUser.updatedAt,
+        reviews: updatedUser.receivedReviews,
       },
     };
   },

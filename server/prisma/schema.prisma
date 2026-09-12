@@ -36,7 +36,9 @@ enum NotificationType {
   REQUEST_CREATED
   REQUEST_ACCEPTED
   REQUEST_REJECTED
+  REQUEST_COMPLETED
   NEW_MESSAGE
+  REVIEW_RECEIVED
   MODERATION
   SYSTEM
 }
@@ -69,6 +71,7 @@ model User {
   passwordResetTokens     PasswordResetToken[]
   skills                  Skill[]
   skillInterests          UserSkillInterest[]
+  savedSkills             SavedSkill[]
   sentRequests            SkillExchangeRequest[]   @relation("SentRequests")
   receivedRequests        SkillExchangeRequest[]   @relation("ReceivedRequests")
   conversationsAsUserA    Conversation[]           @relation("ConversationUserA")
@@ -163,12 +166,27 @@ model Skill {
   category        SkillCategory          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   interestedUsers UserSkillInterest[]
   requests        SkillExchangeRequest[]
+  savedBy         SavedSkill[]
 
   @@unique([userId, title])
   @@index([userId])
   @@index([categoryId])
   @@index([isActive])
   @@index([isActive, createdAt, id])
+}
+
+model SavedSkill {
+  id        String   @id @default(cuid())
+  userId    String
+  skillId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([userId, createdAt])
+  @@index([skillId])
 }
 
 model UserSkillInterest {

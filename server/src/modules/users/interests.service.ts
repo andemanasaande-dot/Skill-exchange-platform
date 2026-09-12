@@ -6,6 +6,10 @@ export const interestsService = {
     skillsToLearn: await interestsRepository.listByUserId(userId),
   }),
 
+  listPublic: async (userId: string) => ({
+    skillsToLearn: await interestsRepository.listByUserId(userId),
+  }),
+
   add: async (userId: string, skillId: string) => {
     const skill = await interestsRepository.findSkill(skillId);
 

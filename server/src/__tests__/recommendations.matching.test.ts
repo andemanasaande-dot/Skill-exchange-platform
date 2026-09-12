@@ -20,7 +20,7 @@ describe('calculateMatch', () => {
   it('calculates a reciprocal match with a deterministic maximum score', () => {
     const result = calculateMatch(currentUser, reciprocalCandidate);
 
-    expect(result?.score).toBe(80);
+    expect(result?.score).toBe(100);
     expect(result?.matchedTeachingSkill.title).toBe('Java');
     expect(result?.matchedLearningInterest.skill.title).toBe('Java');
     expect(result?.reciprocalTeachingSkill.title).toBe('Photoshop');

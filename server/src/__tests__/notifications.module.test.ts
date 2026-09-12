@@ -70,4 +70,26 @@ describe('notifications module', () => {
       recipientId: 'user_1', type: 'REQUEST_ACCEPTED', title: 'Request accepted', body: 'Your skill exchange request was accepted.',
     });
   });
+
+  it('notifies the other participant when an exchange is completed or reviewed', async () => {
+    const create = vi.spyOn(notificationsRepository, 'create').mockResolvedValue({ id: 'notification_1' } as never);
+
+    await notificationsService.handleEvent({
+      type: 'request.completed',
+      occurredAt: new Date().toISOString(),
+      payload: { requestId: 'request_1', senderId: 'user_1', receiverId: 'user_2', skillId: 'skill_1', status: 'COMPLETED', actorUserId: 'user_2', previousStatus: 'ACCEPTED' },
+    });
+    await notificationsService.handleEvent({
+      type: 'review.created',
+      occurredAt: new Date().toISOString(),
+      payload: { reviewId: 'review_1', requestId: 'request_1', authorId: 'user_1', recipientId: 'user_2', rating: 5 },
+    });
+
+    expect(create).toHaveBeenNthCalledWith(1, {
+      recipientId: 'user_1', type: 'REQUEST_COMPLETED', title: 'Exchange completed', body: 'Your skill exchange was marked as completed.',
+    });
+    expect(create).toHaveBeenNthCalledWith(2, {
+      recipientId: 'user_2', type: 'REVIEW_RECEIVED', title: 'You received a review', body: 'A participant rated your exchange 5/5.',
+    });
+  });
 });

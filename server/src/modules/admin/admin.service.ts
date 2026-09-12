@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../../infrastructure/database/prisma';
 
 export const adminService = {
@@ -15,13 +16,13 @@ export const adminService = {
     select: { id: true, name: true, email: true, role: true, status: true, isRestricted: true, warningCount: true, emailVerified: true, createdAt: true },
   }),
   getUser: (id: string) => prisma.user.findUnique({ where: { id }, select: { id: true, name: true, email: true, role: true, status: true, isRestricted: true, warningCount: true, emailVerified: true, createdAt: true } }),
-  activateUser: async (id: string, actorUserId: string) => prisma.$transaction(async (tx) => {
+  activateUser: async (id: string, actorUserId: string) => prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const user = await tx.user.update({ where: { id }, data: { status: 'ACTIVE', isRestricted: false }, select: { id: true, name: true, email: true, role: true, status: true, isRestricted: true, warningCount: true } });
     await tx.auditLog.create({ data: { actorUserId, action: 'ADMIN_USER_ACTIVATED', entityType: 'User', entityId: id, payload: { status: 'ACTIVE', isRestricted: false } } });
     return user;
   }),
   listCategories: () => prisma.skillCategory.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, description: true, createdAt: true } }),
-  updateSkillStatus: async (id: string, isActive: boolean, actorUserId: string) => prisma.$transaction(async (tx) => {
+  updateSkillStatus: async (id: string, isActive: boolean, actorUserId: string) => prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const skill = await tx.skill.update({ where: { id }, data: { isActive }, select: { id: true, title: true, isActive: true, owner: { select: { name: true } }, category: { select: { name: true } } } });
     await tx.auditLog.create({ data: { actorUserId, action: isActive ? 'ADMIN_SKILL_ACTIVATED' : 'ADMIN_SKILL_DEACTIVATED', entityType: 'Skill', entityId: id, payload: { isActive } } });
     return skill;

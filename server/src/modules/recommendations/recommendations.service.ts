@@ -9,8 +9,8 @@ export const recommendationsService = {
 
     const candidates = await recommendationsRepository.findActiveUsersWithActiveSkillsAndInterests(
       userId,
-      currentUser.skills.map((skill) => skill.id),
-      currentUser.skillInterests.map((interest) => interest.skillId),
+      currentUser.skills.map((skill: { id: string }) => skill.id),
+      currentUser.skillInterests.map((interest: { skillId: string }) => interest.skillId),
     );
 
     return calculateMatches(currentUser, candidates);

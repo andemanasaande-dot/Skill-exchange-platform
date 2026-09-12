@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../../infrastructure/database/prisma';
 import { auditService } from '../../infrastructure/audit/audit.service';
 
@@ -24,7 +25,7 @@ export const requestsRepository = {
 
   findById: (id: string) => prisma.skillExchangeRequest.findUnique({ where: { id }, select: requestSelect }),
 
-  create: async (payload: { senderId: string; receiverId: string; skillId: string; message?: string }) => prisma.$transaction(async (tx) => {
+  create: async (payload: { senderId: string; receiverId: string; skillId: string; message?: string }) => prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const [receiver, skill, blocked] = await Promise.all([
       tx.user.findUnique({ where: { id: payload.receiverId }, select: { id: true, status: true } }),
       tx.skill.findUnique({ where: { id: payload.skillId }, select: { id: true, userId: true, isActive: true } }),
@@ -44,7 +45,7 @@ export const requestsRepository = {
     return request;
   }),
 
-  transition: async (id: string, from: 'PENDING' | 'ACCEPTED', to: 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED', actorUserId: string) => prisma.$transaction(async (tx) => {
+  transition: async (id: string, from: 'PENDING' | 'ACCEPTED', to: 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED', actorUserId: string) => prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const updated = await tx.skillExchangeRequest.updateMany({ where: { id, status: from }, data: { status: to } });
     if (updated.count !== 1) throw new Error('INVALID_STATE_TRANSITION');
     const request = await tx.skillExchangeRequest.findUniqueOrThrow({ where: { id }, select: requestSelect });

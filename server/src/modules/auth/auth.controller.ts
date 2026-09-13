@@ -5,12 +5,22 @@ import { env } from '../../config/env';
 
 const refreshCookie = 'skillswap.refresh';
 const cookieValue = (req: Request) => req.headers.cookie?.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${refreshCookie}=`))?.slice(refreshCookie.length + 1);
-const setRefreshCookie = (res: Response, token: string) => {
-  const secure = env.nodeEnv === 'development' || env.nodeEnv === 'test' ? '' : '; Secure';
-  res.setHeader('Set-Cookie', `${refreshCookie}=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800${secure}`);
-};
-const clearRefreshCookie = (res: Response) => res.setHeader('Set-Cookie', `${refreshCookie}=; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Max-Age=0`);
+const isLocalEnvironment = env.nodeEnv === 'development' || env.nodeEnv === 'test';
+const sameSite = isLocalEnvironment ? 'Strict' : 'None';
+const secure = isLocalEnvironment ? '' : '; Secure';
 
+const setRefreshCookie = (res: Response, token: string) => {
+  res.setHeader(
+    'Set-Cookie',
+    `${refreshCookie}=${encodeURIComponent(token)}; HttpOnly; SameSite=${sameSite}; Path=/api/v1/auth; Max-Age=604800${secure}`,
+  );
+};
+
+const clearRefreshCookie = (res: Response) =>
+  res.setHeader(
+    'Set-Cookie',
+    `${refreshCookie}=; HttpOnly; SameSite=${sameSite}; Path=/api/v1/auth; Max-Age=0${secure}`,
+  );
 export const authController = {
   register: async (req: Request, res: Response) => {
     try {

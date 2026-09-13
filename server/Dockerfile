@@ -26,5 +26,5 @@ RUN addgroup -S skillswap && adduser -S skillswap -G skillswap \
   && chown -R skillswap:skillswap /app
 USER skillswap
 EXPOSE 5000
-HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=10 CMD node -e "require('http').get('http://127.0.0.1:5000/api/v1/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
-CMD ["node", "server/dist/server.js"]
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=10 CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||5000)+'/api/v1/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+CMD ["sh", "-c", "npx prisma migrate deploy --schema server/prisma/schema.prisma && node server/dist/server.js"]

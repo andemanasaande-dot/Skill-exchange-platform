@@ -1,10 +1,11 @@
 FROM node:22-alpine AS build
 WORKDIR /app
+RUN apk add --no-cache openssl
 
 COPY package*.json ./
 COPY client/package.json client/package.json
 COPY server/package.json server/package.json
-RUN npm ci
+RUN npm ci --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 COPY server server
 RUN npx prisma generate --schema server/prisma/schema.prisma
@@ -13,11 +14,12 @@ RUN npm run build --workspace server
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+RUN apk add --no-cache openssl
 
 COPY package*.json ./
 COPY client/package.json client/package.json
 COPY server/package.json server/package.json
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 COPY server/prisma server/prisma
 RUN npx prisma generate --schema server/prisma/schema.prisma
 COPY --from=build /app/server/dist server/dist

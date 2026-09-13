@@ -29,4 +29,4 @@ RUN addgroup -S skillswap && adduser -S skillswap -G skillswap \
 USER skillswap
 EXPOSE 5000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=10 CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||5000)+'/api/v1/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
-CMD ["sh", "-c", "npx prisma migrate deploy --schema server/prisma/schema.prisma && node server/dist/server.js"]
+CMD ["sh", "-c", "npx prisma migrate resolve --rolled-back 20260823125948_ndefinedndefinedndefinedndefined --schema server/prisma/schema.prisma >/dev/null 2>&1 || true; npx prisma migrate deploy --schema server/prisma/schema.prisma && node server/dist/server.js"]
